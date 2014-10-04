@@ -74,11 +74,16 @@
     (setf p (pathname p))
     (format nil "~@[~A~]~@[.~A~]" (pathname-name p) (pathname-type p))))
 
-#+ecl
+#+(and ecl (not clasp))
 (eval-when (:load-toplevel :compile-toplevel :execute)
   (setf *load-verbose* nil)
   (defun use-ecl-byte-compiler-p () (and (member :ecl-bytecmp *features*) t))
   (unless (use-ecl-byte-compiler-p) (require :cmp)))
+
+#+clasp
+(eval-when (:load-toplevel :compile-toplevel :execute)
+  (setf *load-verbose* nil)
+  (defun use-ecl-byte-compiler-p () nil))
 
 #+gcl
 (eval-when (:load-toplevel :compile-toplevel :execute)

@@ -427,29 +427,30 @@ or COMPRESSION on SBCL, and APPLICATION-TYPE on SBCL/Windows."
     ;; Is it meaningful to run these in the current environment?
     ;; only if we also track the object files that constitute the "current" image,
     ;; and otherwise simulate dump-image, including quitting at the end.
-    #-(or ecl mkcl) (error "~S not implemented for your implementation (yet)" 'create-image)
-    #+(or ecl mkcl)
+    #-(or ecl mkcl clasp) (error "~S not implemented for your implementation (yet)" 'create-image)
+    #+(or ecl mkcl clasp)
     (let ((epilogue-code
-            (if no-uiop
-                epilogue-code
-                (let ((forms
-                        (append
-                         (when epilogue-code `(,epilogue-code))
-                         (when postludep `((setf *image-postlude* ',postlude)))
-                         (when preludep `((setf *image-prelude* ',prelude)))
-                         (when entry-point-p `((setf *image-entry-point* ',entry-point)))
-                         (case kind
-                           ((:image)
-                            (setf kind :program) ;; to ECL, it's just another program.
-                            `((setf *image-dumped-p* t)
-                              (si::top-level #+ecl t) (quit)))
-                           ((:program)
-                            `((setf *image-dumped-p* :executable)
-                              (shell-boolean-exit
-                               (restore-image))))))))
-                  (when forms `(progn ,@forms))))))
+           (if no-uiop
+               epilogue-code
+               (let ((forms
+                      (append
+                       (when epilogue-code `(,epilogue-code))
+                       (when postludep `((setf *image-postlude* ',postlude)))
+                       (when preludep `((setf *image-prelude* ',prelude)))
+                       (when entry-point-p `((setf *image-entry-point* ',entry-point)))
+                       (case kind
+                         ((:image)
+                          (setf kind :program) ;; to ECL, it's just another program.
+                          `((setf *image-dumped-p* t)
+                            (si::top-level #+ecl t) (quit)))
+                         ((:program)
+                          `((setf *image-dumped-p* :executable)
+                            (shell-boolean-exit
+                             (restore-image))))))))
+                 (when forms `(progn ,@forms))))))
       #+ecl (check-type kind (member :dll :lib :static-library :program :object :fasl))
-      (apply #+ecl 'c::builder #+ecl kind
+      (apply #+clasp 'cmp:builder #+clasp kind
+             #+(or ecl (not clasp)) 'c::builder #+(or ecl (not clasp)) kind
              #+mkcl (ecase kind
                       ((:dll) 'compiler::build-shared-library)
                       ((:lib :static-library) 'compiler::build-static-library)

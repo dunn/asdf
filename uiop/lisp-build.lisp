@@ -67,7 +67,8 @@ This can help you produce more deterministic output for FASLs."))
         #+clozure '(ccl::*nx-speed* ccl::*nx-space* ccl::*nx-safety*
                     ccl::*nx-debug* ccl::*nx-cspeed*)
         #+(or cmu scl) '(c::*default-cookie*)
-        #+ecl (unless (use-ecl-byte-compiler-p) '(c::*speed* c::*space* c::*safety* c::*debug*))
+        #+(and ecl (not clasp)) (unless (use-ecl-byte-compiler-p) '(c::*speed* c::*space* c::*safety* c::*debug*))
+        #+clasp '()
         #+gcl '(compiler::*speed* compiler::*space* compiler::*compiler-new-safety* compiler::*debug*)
         #+lispworks '(compiler::*optimization-level*)
         #+mkcl '(si::*speed* si::*space* si::*safety* si::*debug*)
@@ -779,4 +780,3 @@ it will filter them appropriately."
              (scm:concatenate-system output :fasls-to-concatenate))
         (loop :for f :in fasls :do (ignore-errors (delete-file f)))
         (ignore-errors (lispworks:delete-system :fasls-to-concatenate))))))
-
