@@ -202,9 +202,11 @@ then returning the non-empty string value of the variable"
         #+scl (format nil "~A~A" s
                       ;; ANSI upper case vs lower case.
                       (ecase ext:*case-mode* (:upper "") (:lower "l")))
-        #+ecl (format nil "~A~@[-~A~]" s
-                      (let ((vcs-id (ext:lisp-implementation-vcs-id)))
-                        (subseq vcs-id 0 (min (length vcs-id) 8))))
+        #+(and ecl (not clasp)) (format nil "~A~@[-~A~]" s
+                                       (let ((vcs-id (ext:lisp-implementation-vcs-id)))
+                                         (subseq vcs-id 0 (min (length vcs-id) 8))))
+        #+clasp (format nil "~A-~A"
+                        s (core:lisp-implementation-id))
         #+gcl (subseq s (1+ (position #\space s)))
         #+genera
         (multiple-value-bind (major minor) (sct:get-system-version "System")
