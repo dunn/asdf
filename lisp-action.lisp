@@ -127,8 +127,11 @@
       `(,f ;; the fasl is the primary output, in first position
         #+clisp
         ,@`(,(make-pathname :type "lib" :defaults f))
-        #+(or ecl clasp)
+        #+(and ecl (not clasp))
         ,@(unless (use-ecl-byte-compiler-p)
+            `(,(compile-file-pathname i :type :object)))
+        #+clasp
+        ,@(unless nil ;; was (use-ecl-byte-compiler-p)
             `(,(compile-file-pathname i :type :object)))
         #+mkcl
         ,(compile-file-pathname i :fasl-p nil) ;; object file
