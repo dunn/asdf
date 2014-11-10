@@ -83,7 +83,7 @@ that is neither Unix, nor Windows, nor Genera, nor even old MacOS.~%Now you port
 Beware: may return empty string if a variable is present but empty;
 use getenvp to return NIL in such a case."
     (declare (ignorable x))
-    #+(or abcl clisp ecl xcl) (ext:getenv x)
+    #+(or abcl clisp ecl clasp xcl) (ext:getenv x)
     #+allegro (sys:getenv x)
     #+clozure (ccl:getenv x)
     #+(or cmu scl) (cdr (assoc x ext:*environment-list* :test #'string=))
@@ -106,7 +106,7 @@ use getenvp to return NIL in such a case."
                 (ccl:%get-cstring value))))
     #+mkcl (#.(or (find-symbol* 'getenv :si nil) (find-symbol* 'getenv :mk-ext nil)) x)
     #+sbcl (sb-ext:posix-getenv x)
-    #-(or abcl allegro clisp clozure cmu cormanlisp ecl gcl genera lispworks mcl mkcl sbcl scl xcl)
+    #-(or abcl allegro clisp clozure cmu cormanlisp ecl clasp gcl genera lispworks mcl mkcl sbcl scl xcl)
     (error "~S is not supported on your implementation" 'getenv))
 
   (defun getenvp (x)
@@ -136,7 +136,7 @@ then returning the non-empty string value of the variable"
     "The type of Lisp implementation used, as a short UIOP-standardized keyword"
     (first-feature
      '(:abcl (:acl :allegro) (:ccl :clozure) :clisp (:corman :cormanlisp)
-       (:cmu :cmucl :cmu) :ecl :gcl
+       (:cmu :cmucl :cmu) :ecl :clasp :gcl
        (:lwpe :lispworks-personal-edition) (:lw :lispworks)
        :mcl :mkcl :sbcl :scl (:smbx :symbolics) :xcl)))
 
@@ -232,7 +232,7 @@ suitable for use as a directory name to segregate Lisp FASLs, C dynamic librarie
   (defun hostname ()
     "return the hostname of the current host"
     ;; Note: untested on RMCL
-    #+(or abcl clozure cmu ecl genera lispworks mcl mkcl sbcl scl xcl) (machine-instance)
+    #+(or abcl clozure cmu ecl clasp genera lispworks mcl mkcl sbcl scl xcl) (machine-instance)
     #+cormanlisp "localhost" ;; is there a better way? Does it matter?
     #+allegro (symbol-call :excl.osi :gethostname)
     #+clisp (first (split-string (machine-instance) :separator " "))
@@ -261,7 +261,7 @@ suitable for use as a directory name to segregate Lisp FASLs, C dynamic librarie
         #+(or cmu scl) (#+cmu parse-unix-namestring* #+scl lisp::parse-unix-namestring
                         (strcat (nth-value 1 (unix:unix-current-directory)) "/"))
         #+cormanlisp (pathname (pl::get-current-directory)) ;; Q: what type does it return?
-        #+ecl (ext:getcwd)
+        #+(or ecl clasp) (ext:getcwd)
         #+gcl (let ((*default-pathname-defaults* #p"")) (truename #p""))
         #+genera *default-pathname-defaults* ;; on a Lisp OS, it *is* canonical!
         #+lispworks (hcl:get-working-directory)
@@ -280,13 +280,13 @@ suitable for use as a directory name to segregate Lisp FASLs, C dynamic librarie
       #+(or cmu scl) (unix:unix-chdir (ext:unix-namestring x))
       #+cormanlisp (unless (zerop (win32::_chdir (namestring x)))
                      (error "Could not set current directory to ~A" x))
-      #+ecl (ext:chdir x)
+      #+(or ecl clasp) (ext:chdir x)
       #+gcl (system:chdir x)
       #+genera (setf *default-pathname-defaults* x)
       #+lispworks (hcl:change-directory x)
       #+mkcl (mk-ext:chdir x)
       #+sbcl (progn (require :sb-posix) (symbol-call :sb-posix :chdir (sb-ext:native-namestring x)))
-      #-(or abcl allegro clisp clozure cmu cormanlisp ecl gcl genera lispworks mkcl sbcl scl)
+      #-(or abcl allegro clisp clozure cmu cormanlisp ecl clasp gcl genera lispworks mkcl sbcl scl)
       (error "chdir not supported on your implementation"))))
 
 

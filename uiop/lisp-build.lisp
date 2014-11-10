@@ -75,19 +75,19 @@ This can help you produce more deterministic output for FASLs."))
         #+sbcl '(sb-c::*policy*)))
   (defun get-optimization-settings ()
     "Get current compiler optimization settings, ready to PROCLAIM again"
-    #-(or abcl allegro clisp clozure cmu ecl lispworks mkcl sbcl scl xcl)
+    #-(or abcl allegro clisp clozure cmu ecl clasp lispworks mkcl sbcl scl xcl)
     (warn "~S does not support ~S. Please help me fix that."
           'get-optimization-settings (implementation-type))
-    #+(or abcl allegro clisp clozure cmu ecl lispworks mkcl sbcl scl xcl)
+    #+(or abcl allegro clisp clozure cmu ecl clasp lispworks mkcl sbcl scl xcl)
     (let ((settings '(speed space safety debug compilation-speed #+(or cmu scl) c::brevity)))
       #.`(loop #+(or allegro clozure)
                ,@'(:with info = #+allegro (sys:declaration-information 'optimize)
                    #+clozure (ccl:declaration-information 'optimize nil))
                :for x :in settings
-               ,@(or #+(or abcl ecl gcl mkcl xcl) '(:for v :in +optimization-variables+))
+               ,@(or #+(or abcl ecl clasp gcl mkcl xcl) '(:for v :in +optimization-variables+))
                :for y = (or #+(or allegro clozure) (second (assoc x info)) ; normalize order
                             #+clisp (gethash x system::*optimize* 1)
-                            #+(or abcl ecl mkcl xcl) (symbol-value v)
+                            #+(or abcl ecl clasp mkcl xcl) (symbol-value v)
                             #+(or cmu scl) (slot-value c::*default-cookie*
                                                        (case x (compilation-speed 'c::cspeed)
                                                              (otherwise x)))
@@ -611,8 +611,8 @@ possibly in a different process. Otherwise just call THUNK."
   (defun compile-file-type (&rest keys)
     "pathname TYPE for lisp FASt Loading files"
     (declare (ignorable keys))
-    #-(or ecl mkcl) (load-time-value (pathname-type (compile-file-pathname "foo.lisp")))
-    #+(or ecl mkcl) (pathname-type (apply 'compile-file-pathname "foo" keys)))
+    #-(or ecl clasp mkcl) (load-time-value (pathname-type (compile-file-pathname "foo.lisp")))
+    #+(or ecl clasp mkcl) (pathname-type (apply 'compile-file-pathname "foo" keys)))
 
   (defun call-around-hook (hook function)
     "Call a HOOK around the execution of FUNCTION"
@@ -637,7 +637,7 @@ possibly in a different process. Otherwise just call THUNK."
 
   (defun* (compile-file*) (input-file &rest keys
                                       &key (compile-check *compile-check*) output-file warnings-file
-                                      #+clisp lib-file #+(or ecl mkcl) object-file #+sbcl emit-cfasl
+                                      #+clisp lib-file #+(or ecl clasp mkcl) object-file #+sbcl emit-cfasl
                                       &allow-other-keys)
     "This function provides a portable wrapper around COMPILE-FILE.
 It ensures that the OUTPUT-FILE value is only returned and
@@ -657,17 +657,17 @@ If WARNINGS-FILE is defined, deferred warnings are saved to that file.
 On ECL or MKCL, it creates both the linkable object and loadable fasl files.
 On implementations that erroneously do not recognize standard keyword arguments,
 it will filter them appropriately."
-    #+ecl (when (and object-file (equal (compile-file-type) (pathname object-file)))
+    #+(or ecl clasp) (when (and object-file (equal (compile-file-type) (pathname object-file)))
             (format t "Whoa, some funky ASDF upgrade switched ~S calling convention for ~S and ~S~%"
                     'compile-file* output-file object-file)
             (rotatef output-file object-file))
     (let* ((keywords (remove-plist-keys
                       `(:output-file :compile-check :warnings-file
-                                     #+clisp :lib-file #+(or ecl mkcl) :object-file) keys))
+                                     #+clisp :lib-file #+(or ecl clasp mkcl) :object-file) keys))
            (output-file
              (or output-file
                  (apply 'compile-file-pathname* input-file :output-file output-file keywords)))
-           #+ecl
+           #+(or ecl clasp)
            (object-file
              (unless (use-ecl-byte-compiler-p)
                (or object-file
@@ -691,11 +691,11 @@ it will filter them appropriately."
           (with-enough-pathname (input-file :defaults *base-build-directory*)
             (with-saved-deferred-warnings (warnings-file :source-namestring (namestring input-file))
               (with-muffled-compiler-conditions ()
-                (or #-(or ecl mkcl)
+                (or #-(or ecl clasp mkcl)
                     (apply 'compile-file input-file :output-file tmp-file
                            #+sbcl (if emit-cfasl (list* :emit-cfasl tmp-cfasl keywords) keywords)
                            #-sbcl keywords)
-                    #+ecl (apply 'compile-file input-file :output-file
+                    #+(or ecl clasp) (apply 'compile-file input-file :output-file
                                  (if object-file
                                      (list* object-file :system-p t keywords)
                                      (list* tmp-file keywords)))
@@ -708,11 +708,11 @@ it will filter them appropriately."
                   (and (check-flag failure-p *compile-file-failure-behaviour*)
                        (check-flag warnings-p *compile-file-warnings-behaviour*)))
                 (progn
-                  #+(or ecl mkcl)
-                  (when (and #+ecl object-file)
+                  #+(or ecl clasp mkcl)
+                  (when (and #+(or ecl clasp) object-file)
                     (setf output-truename
                           (compiler::build-fasl
-                           tmp-file #+ecl :lisp-files #+mkcl :lisp-object-files
+                           tmp-file #+(or ecl clasp) :lisp-files #+mkcl :lisp-object-files
                                     (list object-file))))
                   (or (not compile-check)
                       (apply compile-check input-file :output-file tmp-file keywords))))

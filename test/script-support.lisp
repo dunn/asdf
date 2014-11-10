@@ -205,7 +205,7 @@ Some constraints:
       #+cmu :cmucl
       #+corman :cormanlisp
       #+digitool :mcl
-      #+ecl (or #+ecl-bytecmp :ecl_bytecodes :ecl)
+      #+(or ecl clasp) (or #+ecl-bytecmp :ecl_bytecodes :ecl)
       #+gcl :gcl
       #+lispworks :lispworks
       #+mkcl :mkcl
@@ -284,7 +284,7 @@ Some constraints:
   #+clozure (ccl:quit code)
   #+cormanlisp (win32:exitprocess code)
   #+(or cmu scl) (unix:unix-exit code)
-  #+ecl (si:quit code)
+  #+(or ecl clasp) (si:quit code)
   #+gcl (system:quit code)
   #+genera (error "You probably don't want to Halt the Machine. (code: ~S)" code)
   #+lispworks (lispworks:quit :status code :confirm nil :return nil :ignore-errors-p t)
@@ -295,7 +295,7 @@ Some constraints:
              (cond
                (exit `(,exit :code code :abort t))
                (quit* `(,quit* :unix-status code :recklessly-p t))))
-  #-(or abcl allegro clisp clozure cmu ecl gcl genera lispworks mcl mkcl sbcl scl xcl)
+  #-(or abcl allegro clisp clozure cmu ecl clasp gcl genera lispworks mcl mkcl sbcl scl xcl)
   (error "~S called with exit code ~S but there's no quitting on this implementation" 'quit code))
 
 
@@ -389,6 +389,7 @@ is bound, write a message and exit on an error.  If
                  ((or c::compiler-note c::compiler-debug-note
                       c::compiler-warning) ;; ECL emits more serious warnings than it should.
                    #'muffle-warning)
+		 #+clasp (error "Handle call-with-asdf-conditions")
                  #+mkcl
                  ((or compiler:compiler-note) #'muffle-warning)
                  #-(or cmu scl)
@@ -432,7 +433,7 @@ is bound, write a message and exit on an error.  If
             ;; CMUCL: ?
             ;; ECL 11.1.1 has spurious warnings, same with XCL 0.0.0.291.
             ;; SCL has no warning but still raises the warningp flag since 2.20.15 (?)
-            #+(or clisp cmu ecl scl xcl) (good :expected-style-warnings)
+            #+(or clisp cmu ecl clasp scl xcl) (good :expected-style-warnings)
             (and upgradep (good :unexpected-style-warnings))
             (bad :unexpected-style-warnings)))
           (t (good :success)))))))

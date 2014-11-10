@@ -22,7 +22,7 @@
   #+mcl (:shadow #:user-homedir-pathname))
 (in-package :uiop/common-lisp)
 
-#-(or abcl allegro clisp clozure cmu cormanlisp ecl gcl genera lispworks mcl mkcl sbcl scl xcl)
+#-(or abcl allegro clisp clozure cmu cormanlisp ecl clasp gcl genera lispworks mcl mkcl sbcl scl xcl)
 (error "ASDF is not supported on your implementation. Please help us port it.")
 
 ;; (declaim (optimize (speed 1) (debug 3) (safety 3))) ; DON'T: trust implementation defaults.
@@ -30,12 +30,12 @@
 
 ;;;; Early meta-level tweaks
 
-#+(or abcl allegro clisp cmu ecl mkcl clozure lispworks mkcl sbcl scl)
+#+(or abcl allegro clisp cmu ecl clasp mkcl clozure lispworks mkcl sbcl scl)
 (eval-when (:load-toplevel :compile-toplevel :execute)
   ;; Check for unicode at runtime, so that a hypothetical FASL compiled with unicode
   ;; but loaded in a non-unicode setting (e.g. on Allegro) won't tell a lie.
   (when (and #+allegro (member :ics *features*)
-             #+(or clisp cmu ecl mkcl) (member :unicode *features*)
+             #+(or clisp cmu ecl clasp mkcl) (member :unicode *features*)
              #+sbcl (member :sb-unicode *features*))
     (pushnew :asdf-unicode *features*)))
 

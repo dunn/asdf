@@ -88,7 +88,7 @@
               (output-file
                &optional
                  #+clisp lib-file
-                 #+(or ecl mkcl) object-file
+                 #+(or ecl clasp mkcl) object-file
                  warnings-file) outputs
             (call-with-around-compile-hook
              c #'(lambda (&rest flags)
@@ -98,7 +98,7 @@
                           :warnings-file warnings-file
                           (append
                            #+clisp (list :lib-file lib-file)
-                           #+(or ecl mkcl) (list :object-file object-file)
+                           #+(or ecl clasp mkcl) (list :object-file object-file)
                            flags (compile-op-flags o))))))
         (check-lisp-compile-results output warnings-p failure-p
                                     "~/asdf-action::format-action/" (list (cons o c))))))
@@ -123,11 +123,11 @@
   (defun lisp-compilation-output-files (o c)
     (let* ((i (first (input-files o c)))
            (f (compile-file-pathname
-               i #+mkcl :fasl-p #+mkcl t #+ecl :type #+ecl :fasl)))
+               i #+mkcl :fasl-p #+mkcl t #+(or ecl clasp) :type #+(or ecl clasp) :fasl)))
       `(,f ;; the fasl is the primary output, in first position
         #+clisp
         ,@`(,(make-pathname :type "lib" :defaults f))
-        #+ecl
+        #+(or ecl clasp)
         ,@(unless (use-ecl-byte-compiler-p)
             `(,(compile-file-pathname i :type :object)))
         #+mkcl

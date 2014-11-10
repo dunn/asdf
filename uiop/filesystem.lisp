@@ -533,11 +533,11 @@ as per native OS"
   (defun lisp-implementation-directory (&key truename)
     "Where are the system files of the current installation of the CL implementation?"
     (declare (ignorable truename))
-    #+(or clozure ecl gcl mkcl sbcl)
+    #+(or clozure ecl clasp gcl mkcl sbcl)
     (let ((dir
             (ignore-errors
              #+clozure #p"ccl:"
-             #+(or ecl mkcl) #p"SYS:"
+             #+(or ecl clasp mkcl) #p"SYS:"
              #+gcl system::*system-directory*
              #+sbcl (if-let (it (find-symbol* :sbcl-homedir-pathname :sb-int nil))
                       (funcall it)
@@ -575,7 +575,7 @@ in an atomic way if the implementation allows."
            (symbol-call :posix :copy-file source target :method :rename))
     #-clisp
     (rename-file source target
-                 #+(or clozure ecl) :if-exists #+clozure :rename-and-delete #+ecl t))
+                 #+(or clozure ecl clasp) :if-exists #+clozure :rename-and-delete #+(or ecl clasp) t))
 
   (defun delete-file-if-exists (x)
     "Delete a file X if it already exists"
@@ -595,7 +595,7 @@ in an atomic way if the implementation allows."
                        #+scl (error "~@<Error deleting ~S: ~A~@:>"
                                     directory-pathname (unix:get-unix-error-msg errno))))
     #+cormanlisp (win32:delete-directory directory-pathname)
-    #+ecl (si:rmdir directory-pathname)
+    #+(or ecl clasp) (si:rmdir directory-pathname)
     #+genera (fs:delete-directory directory-pathname)
     #+lispworks (lw:delete-directory directory-pathname)
     #+mkcl (mkcl:rmdir directory-pathname)
@@ -603,7 +603,7 @@ in an atomic way if the implementation allows."
                `(,dd directory-pathname) ;; requires SBCL 1.0.44 or later
                `(progn (require :sb-posix) (symbol-call :sb-posix :rmdir directory-pathname)))
     #+xcl (symbol-call :uiop :run-program `("rmdir" ,(native-namestring directory-pathname)))
-    #-(or abcl allegro clisp clozure cmu cormanlisp digitool ecl gcl genera lispworks mkcl sbcl scl xcl)
+    #-(or abcl allegro clisp clozure cmu cormanlisp digitool ecl clasp gcl genera lispworks mkcl sbcl scl xcl)
     (error "~S not implemented on ~S" 'delete-empty-directory (implementation-type))) ; genera
 
   (defun delete-directory-tree (directory-pathname &key (validate nil validatep) (if-does-not-exist :error))

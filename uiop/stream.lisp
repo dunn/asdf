@@ -46,7 +46,7 @@
     (setf *stdin*
           #.(or #+clozure 'ccl::*stdin*
                 #+(or cmu scl) 'system:*stdin*
-                #+ecl 'ext::+process-standard-input+
+                #+(or ecl clasp) 'ext::+process-standard-input+
                 #+sbcl 'sb-sys:*stdin*
                 '*standard-input*)))
 
@@ -57,7 +57,7 @@
     (setf *stdout*
           #.(or #+clozure 'ccl::*stdout*
                 #+(or cmu scl) 'system:*stdout*
-                #+ecl 'ext::+process-standard-output+
+                #+(or ecl clasp) 'ext::+process-standard-output+
                 #+sbcl 'sb-sys:*stdout*
                 '*standard-output*)))
 
@@ -69,7 +69,7 @@
           #.(or #+allegro 'excl::*stderr*
                 #+clozure 'ccl::*stderr*
                 #+(or cmu scl) 'system:*stderr*
-                #+ecl 'ext::+process-error-output+
+                #+(or ecl clasp) 'ext::+process-error-output+
                 #+sbcl 'sb-sys:*stderr*
                 '*error-output*)))
 
