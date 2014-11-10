@@ -141,7 +141,7 @@ itself.")) ;; operation on a system and its dependencies
   (defclass image-op (monolithic-bundle-op selfward-operation
                       #+(or ecl clasp mkcl) link-op #+(or ecl clasp mkcl) gather-op)
     ((bundle-type :initform :image)
-     (selfward-operation :initform '(#-(or ecl mkcl) load-op) :allocation :class))
+     (selfward-operation :initform '(#-(or ecl clasp mkcl) load-op) :allocation :class))
     (:documentation "create an image file from the system and its dependencies"))
 
   (defclass program-op (image-op)
