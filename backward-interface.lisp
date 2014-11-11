@@ -94,7 +94,7 @@ processed in order by OPERATE."))
                      #+mkcl (compile-file-type :fasl-p nil)
                      #+clisp "lib" #+sbcl "cfasl"
                      #+sbcl "sbcl-warnings" #+clozure "ccl-warnings")))
-    #+(or clisp ecl mkcl clasp)
+    #+(or clisp ecl clasp mkcl)
     (when (null map-all-source-files)
       (error "asdf:enable-asdf-binary-locations-compatibility doesn't support :map-all-source-files nil on CLISP, ECL and MKCL"))
     (let* ((patterns (if map-all-source-files (list *wild-file*)

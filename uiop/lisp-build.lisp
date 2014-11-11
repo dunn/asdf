@@ -711,18 +711,20 @@ it will filter them appropriately."
                   #+(or ecl clasp mkcl)
                   (when (and #+(or ecl clasp) object-file)
                     (setf output-truename
-                          (compiler::build-fasl
-                           tmp-file #+(or ecl clasp) :lisp-files #+mkcl :lisp-object-files
-                                    (list object-file))))
+                          (compiler::build-fasl tmp-file
+						#+(or ecl clasp) :lisp-files #+mkcl :lisp-object-files
+						(list object-file))))
                   (or (not compile-check)
-                      (apply compile-check input-file :output-file tmp-file keywords))))
+                      (apply compile-check input-file :output-file #+ecl tmp-file #+clasp output-file keywords))))
            (delete-file-if-exists output-file)
            (when output-truename
+	     #+clasp (when output-truename (rename-file-overwriting-target tmp-file output-truename))
              #+clisp (when lib-file (rename-file-overwriting-target tmp-lib lib-file))
              #+sbcl (when cfasl-file (rename-file-overwriting-target tmp-cfasl cfasl-file))
              (rename-file-overwriting-target output-truename output-file)
              (setf output-truename (truename output-file)))
-           #+clisp (delete-file-if-exists tmp-lib))
+           #+clisp (delete-file-if-exists tmp-lib)
+	   #+clasp (delete-file-if-exists tmp-file))
           (t ;; error or failed check
            (delete-file-if-exists output-truename)
            #+clisp (delete-file-if-exists tmp-lib)
