@@ -123,16 +123,17 @@
   (defun lisp-compilation-output-files (o c)
     (let* ((i (first (input-files o c)))
            (f (compile-file-pathname
-               i #+mkcl :fasl-p #+mkcl t #+(or ecl clasp) :type #+(or ecl clasp) :fasl)))
+               i #+mkcl :fasl-p #+mkcl t 
+	       #+ecl :type #+clasp :output-type #+(or ecl clasp) :fasl)))
       `(,f ;; the fasl is the primary output, in first position
         #+clisp
         ,@`(,(make-pathname :type "lib" :defaults f))
-        #+(and ecl (not clasp))
+        #+ecl
         ,@(unless (use-ecl-byte-compiler-p)
             `(,(compile-file-pathname i :type :object)))
         #+clasp
         ,@(unless nil ;; was (use-ecl-byte-compiler-p)
-            `(,(compile-file-pathname i :type :object)))
+            `(,(compile-file-pathname i :output-type :object)))
         #+mkcl
         ,(compile-file-pathname i :fasl-p nil) ;; object file
         ,@(when (and *warnings-file-type* (not (builtin-system-p (component-system c))))

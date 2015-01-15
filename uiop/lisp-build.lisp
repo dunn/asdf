@@ -671,7 +671,9 @@ it will filter them appropriately."
            (object-file
              (unless (use-ecl-byte-compiler-p)
                (or object-file
-                   (compile-file-pathname output-file :type :object))))
+                   #+ecl(compile-file-pathname output-file :type :object)
+		   #+clasp(compile-file-pathname output-file :output-type :object)
+		   )))
            #+mkcl
            (object-file
              (or object-file
@@ -695,10 +697,14 @@ it will filter them appropriately."
                     (apply 'compile-file input-file :output-file tmp-file
                            #+sbcl (if emit-cfasl (list* :emit-cfasl tmp-cfasl keywords) keywords)
                            #-sbcl keywords)
-                    #+(or ecl clasp) (apply 'compile-file input-file :output-file
-                                 (if object-file
-                                     (list* object-file :system-p t keywords)
-                                     (list* tmp-file keywords)))
+                    #+ecl(apply 'compile-file input-file :output-file
+				(if object-file
+				    (list* object-file :system-p t keywords)
+				    (list* tmp-file keywords)))
+                    #+clasp(apply 'compile-file input-file :output-file
+				  (if object-file
+				      (list* object-file :output-type :object #|| :system-p t||# keywords)
+				      (list* tmp-file keywords)))
                     #+mkcl (apply 'compile-file input-file
                                   :output-file object-file :fasl-p nil keywords)))))
         (cond

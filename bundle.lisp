@@ -471,17 +471,20 @@ itself.")) ;; operation on a system and its dependencies
   ;;  (setf *load-system-operation* 'load-bundle-op))
 
   (defun uiop-library-pathname ()
-    #+(or ecl clasp) (or (probe-file* (compile-file-pathname "sys:uiop" :type :lib)) ;; new style
-			 (probe-file* (compile-file-pathname "sys:uiop" :type :object))) ;; old style
+    #+ecl (or (probe-file* (compile-file-pathname "sys:uiop" :type :lib)) ;; new style
+	      (probe-file* (compile-file-pathname "sys:uiop" :type :object))) ;; old style
+    #+clasp (probe-file* (compile-file-pathname "sys:uiop" :output-type :object))
     #+mkcl (make-pathname :type (bundle-pathname-type :lib) :defaults #p"sys:contrib;uiop"))
 
   (defun asdf-library-pathname ()
-    #+(or ecl clasp) (or (probe-file* (compile-file-pathname "sys:asdf" :type :lib)) ;; new style
-			 (probe-file* (compile-file-pathname "sys:asdf" :type :object))) ;; old style
+    #+ecl (or (probe-file* (compile-file-pathname "sys:asdf" :type :lib)) ;; new style
+	      (probe-file* (compile-file-pathname "sys:asdf" :type :object))) ;; old style
+    #+clasp (probe-file* (compile-file-pathname "sys:asdf" :object-type :object))
     #+mkcl (make-pathname :type (bundle-pathname-type :lib) :defaults #p"sys:contrib;asdf"))
 
   (defun compiler-library-pathname ()
-    #+(or ecl clasp) (compile-file-pathname "sys:cmp" :type :lib)
+    #+ecl (compile-file-pathname "sys:cmp" :type :lib)
+    #+clasp (compile-file-pathname "sys:cmp" :object-type :lib)
     #+mkcl (make-pathname :type (bundle-pathname-type :lib) :defaults #p"sys:cmp"))
 
   (defun make-library-system (name pathname)
