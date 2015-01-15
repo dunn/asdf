@@ -479,12 +479,12 @@ itself.")) ;; operation on a system and its dependencies
   (defun asdf-library-pathname ()
     #+ecl (or (probe-file* (compile-file-pathname "sys:asdf" :type :lib)) ;; new style
 	      (probe-file* (compile-file-pathname "sys:asdf" :type :object))) ;; old style
-    #+clasp (probe-file* (compile-file-pathname "sys:asdf" :object-type :object))
+    #+clasp (probe-file* (compile-file-pathname "sys:asdf" :output-type :object))
     #+mkcl (make-pathname :type (bundle-pathname-type :lib) :defaults #p"sys:contrib;asdf"))
 
   (defun compiler-library-pathname ()
     #+ecl (compile-file-pathname "sys:cmp" :type :lib)
-    #+clasp (compile-file-pathname "sys:cmp" :object-type :lib)
+    #+clasp (compile-file-pathname "sys:cmp" :output-type :lib)
     #+mkcl (make-pathname :type (bundle-pathname-type :lib) :defaults #p"sys:cmp"))
 
   (defun make-library-system (name pathname)
